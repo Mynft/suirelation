@@ -1,6 +1,11 @@
-import { JsonRpcProvider, RawSigner, SuiAddress, SuiObjectResponse, TransactionBlock } from '@mysten/sui.js';
-import { provider } from '../examples/common';
-import { SuiTransactionBlockResponse } from '@mysten/sui.js/src/types';
+import {
+  JsonRpcProvider,
+  RawSigner,
+  SuiAddress,
+  SuiTransactionBlockResponse,
+  SuiObjectResponse,
+  TransactionBlock,
+} from '@mysten/sui.js';
 
 const CLOCK_ADDR = '0x0000000000000000000000000000000000000000000000000000000000000006';
 
@@ -49,7 +54,7 @@ export class SuiRelation {
     if (this.relationshipsTableId) {
       return this.relationshipsTableId;
     }
-    const global = await provider.getObject({
+    const global = await this.provider.getObject({
       id: this.globalObjectId,
       options: {
         showContent: true,
@@ -61,7 +66,7 @@ export class SuiRelation {
 
   private async getUserRelationShip(user: SuiAddress): Promise<SuiObjectResponse | null> {
     const relationshipsTableId = await this.getRelationshipsTableId();
-    const userRelationShip = await provider.getDynamicFieldObject({
+    const userRelationShip = await this.provider.getDynamicFieldObject({
       parentId: relationshipsTableId,
       name: {
         type: 'address',
