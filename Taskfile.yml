@@ -17,8 +17,11 @@ tasks:
       - sources/**/*.move
       - Move.toml
   demo:
+    deps:
+      - build
     cmds:
       - pnpm ts-node examples/demo.ts
     sources:
       - src/**/*.ts
       - examples/**/*.ts
+      - .env

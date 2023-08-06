@@ -1,0 +1,41 @@
+name: Publish package to GitHub Packages
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 8.1.1
+      - uses: actions/setup-node@v3.6.0
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@suia'
+      - run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+      - run: pnpm publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+# The org name on github is MyNFT, not suia. Skip publishing to github packages for now.
+#      - uses: actions/setup-node@v3.6.0
+#        with:
+#          node-version: '18'
+#          cache: 'pnpm'
+#          registry-url: 'https://npm.pkg.github.com'
+#          scope: '@suia'
+#      - run: pnpm publish --no-git-checks --access public --registry https://npm.pkg.github.com
+#        env:
+#          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -115,19 +115,19 @@ async function queries(appMeta: AppMeta) {
   });
   console.log('userRelationShip', JSON.stringify(userRelationShip, null, 2));
 
-  const followeeNum = (userRelationShip.data!.content as any).fields.value.fields.followees.fields.size;
-  const followeeTableId = (userRelationShip.data!.content as any).fields.value.fields.followees.fields.id.id;
+  const followingNum = (userRelationShip.data!.content as any).fields.value.fields.followings.fields.size;
+  const followingTableId = (userRelationShip.data!.content as any).fields.value.fields.followings.fields.id.id;
   const followerNum = (userRelationShip.data!.content as any).fields.value.fields.followers.fields.size;
   const followerTableId = (userRelationShip.data!.content as any).fields.value.fields.followers.fields.id.id;
   console.log(
-    `followeeNum: ${followeeNum}, followeeTableId: ${followeeTableId}, followerNum: ${followerNum}, followerTableId: ${followerTableId}`,
+    `followingNum: ${followingNum}, followingTableId: ${followingTableId}, followerNum: ${followerNum}, followerTableId: ${followerTableId}`,
   );
 
-  // get followee list
-  await iterateTable(followeeTableId, (object) => {
+  // get following list
+  await iterateTable(followingTableId, (object) => {
     const addr = (object.data!.content as any).fields.name;
     const tp = (object.data!.content as any).fields.value;
-    console.log(`followee: ${addr}, follow at ${new Date(parseInt(tp))}`);
+    console.log(`following: ${addr}, follow at ${new Date(parseInt(tp))}`);
   });
 
   // check relationship
@@ -140,7 +140,7 @@ async function queries(appMeta: AppMeta) {
     transactionBlock: tx,
     sender: userAddr,
   });
-  console.log('check_relationship', JSON.stringify((res.events! as any).parsedJson, null, 2));
+  console.log('check_relationship', JSON.stringify(res, null, 2));
 }
 
 async function main() {

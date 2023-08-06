@@ -1,12 +1,13 @@
 {
   "name": "@suia/suirelation",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Sui Relation",
   "keywords": [
     "sui",
     "move",
     "blockchain",
-    "suia"
+    "suia",
+    "relation"
   ],
   "homepage": "https://github.com/Mynft/suirelation",
   "bugs": "https://github.com/Mynft/suirelation/issues",
@@ -37,8 +38,8 @@
   "license": "MIT",
   "scripts": {
     "demo": "ts-node examples/demo.ts",
+    "sdk_demo": "ts-node examples/sdk_demo.ts",
     "fix:prettier": "prettier --write src examples",
-    "build:contract": "sui move build --dump-bytecode-as-base64 --path . > src/contract_assets.json",
     "clean": "rm -rf tsconfig.tsbuildinfo ./dist",
     "build": "npm run build:types && npm run build:tsup",
     "build:tsup": "tsup ./src/index.ts --format esm,cjs --sourcemap",

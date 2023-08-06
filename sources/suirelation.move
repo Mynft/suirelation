@@ -12,6 +12,7 @@ module suirelation::suirelation {
     const ENOT_FOLLOWED: u64 = 2;
     const ENO_RELATIONSHIP_FOUND_FOR_FROM: u64 = 3;
     const ENO_RELATIONSHIP_FOUND_FOR_TO: u64 = 4;
+    const ECANNOT_FOLLOW_SELF: u64 = 5;
 
     struct Global has key, store {
         id: UID,
@@ -20,7 +21,7 @@ module suirelation::suirelation {
 
     struct RelationShip has store {
         followers: Table<address, u64>,
-        followees: Table<address, u64>,
+        followings: Table<address, u64>,
     }
 
     // ====== Events ======
@@ -39,7 +40,7 @@ module suirelation::suirelation {
     struct RelationEvent has copy, drop {
         to: address,
         is_follower: bool,
-        is_followee: bool,
+        is_following: bool,
     }
 
     struct CheckRelationshipEvent has copy, drop {
@@ -62,23 +63,24 @@ module suirelation::suirelation {
         ctx: &mut TxContext,
     ) {
         let from = sender(ctx);
+        assert!(from != to, ECANNOT_FOLLOW_SELF);
         let now = timestamp_ms(clock);
-        // add to address to from's followees
+        // add to address to from's followings
         if(!table::contains(&global.relationships, from)) {
             let relationship = RelationShip {
                 followers: table::new(ctx),
-                followees: table::new(ctx),
+                followings: table::new(ctx),
             };
             table::add(&mut global.relationships, from, relationship);
         };
         let relationship_from = table::borrow_mut(&mut global.relationships, from);
-        assert!(!table::contains(&relationship_from.followees, to), EALREADY_FOLLOWED);
-        table::add(&mut relationship_from.followees, to, now);
+        assert!(!table::contains(&relationship_from.followings, to), EALREADY_FOLLOWED);
+        table::add(&mut relationship_from.followings, to, now);
         // add from address to to's followers
         if(!table::contains(&global.relationships, to)) {
             let relationship = RelationShip {
                 followers: table::new(ctx),
-                followees: table::new(ctx),
+                followings: table::new(ctx),
             };
             table::add(&mut global.relationships, to, relationship);
         };
@@ -99,11 +101,11 @@ module suirelation::suirelation {
         ctx: &mut TxContext,
     ) {
         let from = sender(ctx);
-        // remove to address from from's followees
+        // remove to address from from's followings
         assert!(table::contains(&global.relationships, from), ENO_RELATIONSHIP_FOUND_FOR_FROM);
         let relationship_from = table::borrow_mut(&mut global.relationships, from);
-        assert!(table::contains(&relationship_from.followees, to), ENOT_FOLLOWED);
-        table::remove(&mut relationship_from.followees, to);
+        assert!(table::contains(&relationship_from.followings, to), ENOT_FOLLOWED);
+        table::remove(&mut relationship_from.followings, to);
         // remove from address from to's followers
         assert!(table::contains(&global.relationships, to), ENO_RELATIONSHIP_FOUND_FOR_TO);
         let relationship_to = table::borrow_mut(&mut global.relationships, to);
@@ -115,6 +117,18 @@ module suirelation::suirelation {
             to,
             timestamp_ms: timestamp_ms(clock),
         });
+    }
+
+    public fun is_following(
+        global: &Global,
+        from: address,
+        to: address,
+    ): bool {
+        if(!table::contains(&global.relationships, from)) {
+            return false
+        };
+        let relationship = table::borrow(&global.relationships, from);
+        table::contains(&relationship.followings, to)
     }
 
     public fun check_relationship(
@@ -131,7 +145,7 @@ module suirelation::suirelation {
                 let to = *vector::borrow(&to_vec, i);
                 let relation_event = RelationEvent {
                     to,
-                    is_followee: false,
+                    is_following: false,
                     is_follower: false,
                 };
                 vector::push_back(&mut to_relationships, relation_event);
@@ -143,7 +157,7 @@ module suirelation::suirelation {
                 let to = *vector::borrow(&to_vec, i);
                 let relation_event = RelationEvent {
                     to,
-                    is_followee: table::contains(&relationship.followees, to),
+                    is_following: table::contains(&relationship.followings, to),
                     is_follower: table::contains(&relationship.followers, to),
                 };
                 vector::push_back(&mut to_relationships, relation_event);
